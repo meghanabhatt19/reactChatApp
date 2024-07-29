@@ -1,7 +1,27 @@
 import React from "react";
 import "./details.css";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { userStore } from "../userStore";
+import { chatStore } from "../chatStore";
+import { updateDoc, arrayUnion, arrayRemove, doc } from "firebase/firestore";
+
 function Details() {
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } = chatStore();
+  const { currentUser } = userStore();
+
+  const handleBlock = async () => {
+    if (!user) return;
+    const userDocRef = doc(db, "users", currentUser.id);
+    try {
+      await updateDoc(userDocRef, {
+        blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
+      });
+      changeBlock();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   async function handleLogout() {
     try {
       await auth.signOut();
@@ -11,11 +31,12 @@ function Details() {
       console.error("Error logging out:", error.message);
     }
   }
+
   return (
     <div className="detail">
       <div className="user">
-        <img src="./avatar.png" alt="" />
-        <h3>Jane Doe</h3>
+        <img src={user?.avatar || "./avatar.png"} alt="" />
+        <h2>{user?.username}</h2>
         <p>Lorem ipsum dolor sit amet.</p>
       </div>
       <div className="info">
@@ -42,54 +63,48 @@ function Details() {
             <span>Shared photos</span>
             <img src="./arrowUp.png" alt="" />
           </div>
-        </div>
-        <div className="option">
-          {/* <div className="title"> */}
-            {/* <span>Shared photo</span>
-            <img src="./arrowDown.png" alt="" /> */}
-            <div className="photos">
-              <div className="photoItem">
-                <div className="photoDetail">
-                  <img
-                    src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-                    alt=""
-                  />
-                  <span>photo_2024_2.png</span>
-                </div>
-                <img src="./download.png" alt="" className="icon"/>
+          <div className="photos">
+            <div className="photoItem">
+              <div className="photoDetail">
+                <img
+                  src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
+                  alt=""
+                />
+                <span>photo_2024_2.png</span>
               </div>
-              <div className="photoItem">
-                <div className="photoDetail">
-                  <img
-                    src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-                    alt=""
-                  />
-                  <span>photo_2024_2.png</span>
-                </div>
-                <img src="./download.png" alt="" className="icon"/>
-              </div>
-              <div className="photoItem">
-                <div className="photoDetail">
-                  <img
-                    src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-                    alt=""
-                  />
-                  <span>photo_2024_2.png</span>
-                </div>
-                <img src="./download.png" alt="" className="icon"/>
-              </div>
-              <div className="photoItem">
-                <div className="photoDetail">
-                  <img
-                    src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-                    alt=""
-                  />
-                  <span>photo_2024_2.png</span>
-                </div>
-                <img src="./download.png" alt="" className="icon"/>
-              </div>
+              <img src="./download.png" alt="" className="icon" />
             </div>
-          {/* </div> */}
+            <div className="photoItem">
+              <div className="photoDetail">
+                <img
+                  src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
+                  alt=""
+                />
+                <span>photo_2024_2.png</span>
+              </div>
+              <img src="./download.png" alt="" className="icon" />
+            </div>
+            <div className="photoItem">
+              <div className="photoDetail">
+                <img
+                  src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
+                  alt=""
+                />
+                <span>photo_2024_2.png</span>
+              </div>
+              <img src="./download.png" alt="" className="icon" />
+            </div>
+            <div className="photoItem">
+              <div className="photoDetail">
+                <img
+                  src="https://images.pexels.com/photos/7381200/pexels-photo-7381200.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
+                  alt=""
+                />
+                <span>photo_2024_2.png</span>
+              </div>
+              <img src="./download.png" alt="" className="icon" />
+            </div>
+          </div>
         </div>
         <div className="option">
           <div className="title">
@@ -97,8 +112,13 @@ function Details() {
             <img src="./arrowUp.png" alt="" />
           </div>
         </div>
-  
-        <button >Block User</button>
+        <button onClick={handleBlock}>
+          {isCurrentUserBlocked
+            ? "You are Blocked!"
+            : isReceiverBlocked
+            ? "User blocked"
+            : "Block User"}
+        </button>
         <button className="logOut" onClick={handleLogout}>Log Out</button>
       </div>
     </div>
